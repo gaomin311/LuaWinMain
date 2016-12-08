@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="tsplug">
+      <UniqueIdentifier>{3a8ea029-4040-40f6-973a-0243c5fc687f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -40,7 +43,10 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="tsplug\TSFindPicture.h">
-      <Filter>头文件</Filter>
+      <Filter>tsplug</Filter>
+    </ClInclude>
+    <ClInclude Include="tsplug\CommAPI.h">
+      <Filter>tsplug</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -57,7 +63,10 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="tsplug\TSFindPicture.cpp">
-      <Filter>源文件</Filter>
+      <Filter>tsplug</Filter>
+    </ClCompile>
+    <ClCompile Include="tsplug\CommAPI.cpp">
+      <Filter>tsplug</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

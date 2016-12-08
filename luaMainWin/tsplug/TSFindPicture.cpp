@@ -7,6 +7,7 @@
 #include "TSFindPicture.h"
 #include "D3dx9tex.h"
 #include "DXBind.h"
+#include "CommAPI.h"
 #include   <GdiPlus.h> 
 using   namespace   Gdiplus; 
 #pragma comment(lib, "gdiplus.lib")
@@ -819,11 +820,9 @@ int MyFindPictureClass::findPicture(PVOID pbuffer,HWND hwnd,int left, int top, i
 
 	if(hwnd!=0)
 	{
+		//超过边界值, GDI模式不支持最小化找图
 		if(::IsIconic(hwnd))
-		{
-			//::MessageBox(0,L"超过边界值,GDI模式不支持最小化找图",L"TS",0);
 			return -1;
-		}
 	}
 
 	////////处理颜色和色偏
@@ -838,7 +837,7 @@ int MyFindPictureClass::findPicture(PVOID pbuffer,HWND hwnd,int left, int top, i
 			break;
 		if(count<2)
 			colorR[count]=color[colorL++];
-		else if(count>1&&count<4)
+		else if(count>1 && count<4)
 			colorG[count-2]=color[colorL++];
 		else if(count>3)
 			colorB[count-4]=color[colorL++];
@@ -878,12 +877,12 @@ int MyFindPictureClass::findPicture(PVOID pbuffer,HWND hwnd,int left, int top, i
 
 		if(left<0)
 			left=0;
-		if(left >= clientwide)
+		else if(left >= clientwide)
 			left = clientwide-1;
 
 		if(top<0)
 			top=0;
-		if(top >= clienthight)
+		else if(top >= clienthight)
 			top = clienthight-1;
 
 		if(right >= clientwide)
@@ -929,7 +928,6 @@ int MyFindPictureClass::findPicture(PVOID pbuffer,HWND hwnd,int left, int top, i
 		m_Top = top;
 		m_Right = right;
 		m_bottom = bottom;
-
 	}
 	else
 	{
@@ -949,12 +947,12 @@ int MyFindPictureClass::findPicture(PVOID pbuffer,HWND hwnd,int left, int top, i
 
 		if(left<0)
 			m_Left = left =0;
-		if(left >= clientwide)
+		else if(left >= clientwide)
 			m_Left = clientwide-1;
 
 		if(top<0)
 			m_Top = top =0;
-		if(top >= clienthight)
+		else if(top >= clienthight)
 			m_Top = clienthight-1;
 
 		if(right >= clientwide)
@@ -962,8 +960,6 @@ int MyFindPictureClass::findPicture(PVOID pbuffer,HWND hwnd,int left, int top, i
 
 		if(bottom >= clienthight)
 			m_bottom=clienthight-1;
-
-		//TSRuntime::add_log( "m_Left:%d,m_Top:%d,m_Right:%d,m_bottom:%d",m_Left,m_Top,m_Right,m_bottom);
 	}
 	RECT rc;
 	rc.bottom=m_bottom;
@@ -977,21 +973,16 @@ int MyFindPictureClass::findPicture(PVOID pbuffer,HWND hwnd,int left, int top, i
 		wndHeight=m_bottom-m_Top;
 		//DX模式找字
 		if(!getDXBitmap(pbuffer,ColorDataInfo))
-		{
 			return retIndex;
-		}
 	}	
 	else
 	{
 		////GDI模式找字
 		if(!getGDIBitmap(hwnd,rc))
-		{
 			return retIndex;
-		}
 	}
 
 	/////////////////// 处理多张图 /////////////////////
-
 	int col=0;
 	while(*path)
 	{
@@ -1245,17 +1236,11 @@ int MyFindPictureClass::findPicture(PVOID pbuffer,HWND hwnd,int left, int top, i
 
 			if(!retstring||type==2)
 				break;
-
 		}
-		//TSRuntime::add_log( "end,path:%s",W2A(path));
-		//::SetCursorPos(xpos,ypos);
 	}
 
 endfind:
-
 	return retIndex;
-
-
 }
 
 bool MyFindPictureClass::findImage(wchar_t* path,long &xpos,long &ypos,int type)
