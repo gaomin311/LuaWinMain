@@ -197,81 +197,6 @@ bool MyFindPictureClass::loadBitmap(wchar_t* path)
 	return true;
 }
 
-//
-//bool MyFindPictureClass::loadBitmap(wchar_t* path)
-//	{
-//	//TSRuntime::add_log( "loadBitmap");
-//	///////////////////////////加载的位图 //////////////////////////
-//	HBITMAP hbmp = (HBITMAP)LoadImage(NULL,path,IMAGE_BITMAP,0,0,LR_LOADFROMFILE );
-//	if(hbmp==NULL)
-//		{
-//			//::MessageBox(NULL,L"加载位图失败",path,0);
-//			return false;
-//		}
-//
-//	BITMAP bitmap;
-//	GetObject(hbmp, sizeof(BITMAP), &bitmap);
-//
-//	BITMAPINFO info;
-//	HDC dc;
-//	dc=::CreateDC(L"DISPLAY",NULL,NULL,NULL);
-//
-//	// 24位图的BITMAPINFO
-//	BITMAPINFO *pBITMAPINFO = (BITMAPINFO*)malloc(sizeof(BITMAPINFOHEADER));
-//	memset(pBITMAPINFO, 0, sizeof(BITMAPINFOHEADER));
-//	BITMAPINFOHEADER *pInfo_Header = (BITMAPINFOHEADER *)pBITMAPINFO;
-//	pInfo_Header->biSize = sizeof(BITMAPINFOHEADER);   
-//	pInfo_Header->biWidth =bitmap.bmWidth;  
-//	pInfo_Header->biHeight = bitmap.bmHeight;  
-//	pInfo_Header->biPlanes = 1;  
-//	pInfo_Header->biBitCount = 24;  
-//	pInfo_Header->biCompression = BI_RGB;
-//
-//	long width = bitmap.bmWidth;
-//	long height = bitmap.bmHeight;
-//	info.bmiHeader.biBitCount=24;
-//
-//	loadWidth = width;
-//	loadHeight = height;
-//
-//	DWORD bufSize = ( width * 3 + 3) / 4 * 4 * height;
-//	BYTE *buffer=new BYTE[bufSize];
-//	memset(buffer,0,sizeof(BYTE)*bufSize);
-//	if(!GetDIBits(dc, hbmp, 0, bitmap.bmHeight, buffer, pBITMAPINFO, DIB_RGB_COLORS))
-//		{
-//		if(TSRuntime::IsShowErrorMsg)
-//			::MessageBox(NULL,L"加载位图失败",L"TC",0);
-//		return false;
-//		}
-//	pLoadBmpBuffer = new COLORREF*[height];     ///// 二维数组 用来存储图像的颜色值
-//	for(int i=0;i<height;i++)
-//		{
-//		pLoadBmpBuffer[i]=new COLORREF[width];
-//		}
-//	COLORREF helpcolor=0;
-//	int pitch=width%4;
-//	HDC hDC = ::GetWindowDC(::GetDesktopWindow());
-//	for(int i=0;i<height;i++)
-//		{
-//		int realPitch=i*pitch;
-//		for(int j=0;j<width;j++)
-//			{
-//			UCHAR b=buffer[(i*width+j)*3+realPitch];
-//			UCHAR g=buffer[(i*width+j)*3+1+realPitch];
-//			UCHAR r=buffer[(i*width+j)*3+2+realPitch];
-//			helpcolor=RGB(r,g,b);
-//			SetPixel(hDC,j,i,helpcolor);
-//			pLoadBmpBuffer[height-i-1][j]=helpcolor;	
-//			}
-//		}
-//	///////////////////////////获得加载位图 颜色成功 //////////////////////////
-//	delete [] buffer;
-//	::DeleteDC(dc);
-//	::free(pBITMAPINFO);
-//	::DeleteObject(hbmp);
-//	return true;
-//	}
-
 bool MyFindPictureClass::SaveGDIBitmap(HWND hWnd,RECT rect,wchar_t *savepath)
 {
 	HDC hDC;
@@ -578,15 +503,7 @@ bool MyFindPictureClass::SaveBitmapToFile(HBITMAP hBitmap, LPCWSTR lpFileName)
 	GlobalFree(hDib);
 	CloseHandle(fh);
 	//return TRUE;
-	if(bw1&&bw2==true)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-
+	return (bw1&&bw2 == true);
 }
 
 bool MyFindPictureClass::getGDIBitmap(HWND hWnd,RECT rc,int typemode)
@@ -850,15 +767,15 @@ int MyFindPictureClass::findPicture(PVOID pbuffer,HWND hwnd,int left, int top, i
 	m_colorOffsR = GetRValue(strColor);
 	m_colorOffsG = GetGValue(strColor);
 	m_colorOffsB = GetBValue(strColor);
-	////////处理颜色和色偏
 
+	//处理颜色和色偏
 	m_simColNum = CPub::GetSimColNum(simi);
 	m_Dir = dir;
 	/////////////////////////////控制四点的边界值以防止越界//////////////////////////
 	wchar_t pathBuffer[MAX_PATH]={0};
 	wchar_t RCPath[MAX_PATH]={0};
 
-	if(m_parenthwnd!=0&&m_parenthwnd!=::GetDesktopWindow())//normol找图
+	if(m_parenthwnd!=0 && m_parenthwnd!=::GetDesktopWindow())//normol找图
 	{
 		RECT rec;
 		RECT clientrec;
@@ -866,30 +783,14 @@ int MyFindPictureClass::findPicture(PVOID pbuffer,HWND hwnd,int left, int top, i
 		int clienthight=clientrec.bottom-clientrec.top;
 		int clientwide=clientrec.right-clientrec.left;
 		::GetWindowRect(m_parenthwnd,&rec);
-		POINT point;
-		point.x=0;
-		point.y=0;
+		POINT point = {0, 0};
 		::ClientToScreen(m_parenthwnd,&point);
 		m_Left=point.x;
 		m_Top=point.y;
 		m_Right=rec.right;
 		m_bottom=rec.bottom;
 
-		if(left<0)
-			left=0;
-		else if(left >= clientwide)
-			left = clientwide-1;
-
-		if(top<0)
-			top=0;
-		else if(top >= clienthight)
-			top = clienthight-1;
-
-		if(right >= clientwide)
-			right=clientwide-1;
-
-		if(bottom >= clienthight)
-			bottom=clienthight-1;
+		AdjustBound(left, top, right, bottom, clientwide, clienthight);
 
 		if(m_Left<0)
 		{
@@ -904,20 +805,22 @@ int MyFindPictureClass::findPicture(PVOID pbuffer,HWND hwnd,int left, int top, i
 		if(m_Top>=0)
 			top=m_Top+top;
 
-		if(m_Right >= ::GetSystemMetrics(SM_CXSCREEN))
+		int cx = ::GetSystemMetrics(SM_CXSCREEN);
+		if(m_Right >= cx)
 		{
-			if((right+m_Left)>::GetSystemMetrics(SM_CXSCREEN))
-				right=::GetSystemMetrics(SM_CXSCREEN)-1;
+			if((right+m_Left)> cx)
+				right=cx-1;
 			else
 				right=right+m_Left;
 		}
 		else
 			right=right+m_Left;
 
-		if(m_bottom >= ::GetSystemMetrics(SM_CYSCREEN))
+		int cy = ::GetSystemMetrics(SM_CYSCREEN);
+		if(m_bottom >= cy)
 		{
-			if((bottom+m_Top)>=::GetSystemMetrics(SM_CYSCREEN))
-				bottom=::GetSystemMetrics(SM_CYSCREEN)-1;
+			if((bottom+m_Top)>=cy)
+				bottom=cy-1;
 			else
 				bottom=bottom+m_Top;
 		}
@@ -945,21 +848,7 @@ int MyFindPictureClass::findPicture(PVOID pbuffer,HWND hwnd,int left, int top, i
 		m_bottom = bottom;
 		//TSRuntime::add_log( "clientwide:%d,clienthight:%d,m_Left:%d,m_Top:%d,m_Right:%d,m_bottom:%d",clientwide,clienthight,left,top,right,bottom);
 
-		if(left<0)
-			m_Left = left =0;
-		else if(left >= clientwide)
-			m_Left = clientwide-1;
-
-		if(top<0)
-			m_Top = top =0;
-		else if(top >= clienthight)
-			m_Top = clienthight-1;
-
-		if(right >= clientwide)
-			m_Right=clientwide-1;
-
-		if(bottom >= clienthight)
-			m_bottom=clienthight-1;
+		AdjustBound(left, top, right, bottom, clientwide, clienthight);
 	}
 	RECT rc;
 	rc.bottom=m_bottom;
@@ -995,7 +884,6 @@ int MyFindPictureClass::findPicture(PVOID pbuffer,HWND hwnd,int left, int top, i
 		}
 		else
 		{
-			//StrTrimW(pathBuffer,L" ");//移除前后空格符
 			wchar_t *findpath=wcsstr(pathBuffer,L":");
 			if(wcslen(SetPath)>0&&findpath==NULL)
 			{
@@ -1253,23 +1141,18 @@ bool MyFindPictureClass::findImage(wchar_t* path,long &xpos,long &ypos,int type)
 	switch(m_Dir)
 	{
 	case 0:
-		{
-			isFind=leftToRightFromTop(xpos,ypos); //0:从左到右,从上倒下
-			break;
-		}
+		isFind=leftToRightFromTop(xpos,ypos); //0:从左到右,从上倒下
+		break;
 	case 1:
 		isFind=leftToRightFromBottom(xpos,ypos);//1:从右到左,从上倒下
 		break;
-
 	case 2:
 		isFind=rightToLeftFromTop(xpos,ypos);//2:从左到右,从下倒上
 		break;
-
 	case 3:
 		isFind=rightToLeftFromBottom(xpos,ypos);//3:从右到左,从下倒上
 		break;	
 	}
-	//TSRuntime::add_log( "findImage-xpos:%d,ypos:%d,xpos_offset:%d,ypos_offset:%d,m_Dir:%d",xpos,ypos,xpos_offset,ypos_offset,m_Dir);
 	for(int i=0;i<loadHeight;i++)
 	{
 		delete [] pLoadBmpBuffer[i];
@@ -1278,48 +1161,58 @@ bool MyFindPictureClass::findImage(wchar_t* path,long &xpos,long &ypos,int type)
 	delete [] pLoadBmpBuffer;
 	pLoadBmpBuffer=NULL;
 
-
-	//TSRuntime::add_log( "findImage-end");
 	return isFind;
-
 }
 
 ////////////////// 检索 方式 //////////////////
+//是否存在背景色
+bool MyFindPictureClass::isExistBackCol()
+{
+	COLORREF pColor = pLoadBmpBuffer[0][0];  //目标图片的背景色
+	if (pColor == pLoadBmpBuffer[0][loadWidth - 1] &&
+		pColor == pLoadBmpBuffer[loadHeight - 1][loadWidth - 1] &&
+		pColor == pLoadBmpBuffer[loadHeight - 1][0])
+		return true;
+	return false;
+}
+
+int MyFindPictureClass::checkStartPt(int &startx, int &starty)
+{
+	COLORREF pColor = pLoadBmpBuffer[0][0];  //目标图片的背景色
+	for (int m = 0; m < loadHeight; m++)
+	{
+		for (int n = 0; n < loadWidth; n++)
+		{
+			if (pLoadBmpBuffer[m][n] == pColor)
+				continue; //过滤掉不处理的背景透明色
+			else
+			{
+				//2012.2.28 修改相似的图无法识别的问题.
+				startx = n;
+				starty = m;
+				return 1;
+			}
+		}
+		if ((m + 1) == loadWidth)//如果全图是一个颜色，说明不是透明图
+			return 2;
+	}
+	return 0;
+}
 ////////////////////////////////////////////////0：从左到右,从上倒下//////////////////////////
 bool MyFindPictureClass::leftToRightFromTop(long &xpos,long &ypos)
 {
-	//TSRuntime::add_log( "leftToRightFromTop,loadHeight:%d,loadWidth:%d",loadHeight,loadWidth);
 	bool isFind=false;
 	bool isfirst=true;
-	COLORREF pColor = pLoadBmpBuffer[0][0];  //// 目标图片的背景色
-	if(pLoadBmpBuffer[0][0]==pLoadBmpBuffer[0][loadWidth-1]&&
-		pLoadBmpBuffer[0][0]==pLoadBmpBuffer[loadHeight-1][loadWidth-1]&&
-		pLoadBmpBuffer[0][0]==pLoadBmpBuffer[loadHeight-1][0])
+	
+	int ret = 0;
+	int startx = 0, starty = 0;
+	bool isBackCol = isExistBackCol();
+	if (isBackCol)
+		ret = checkStartPt(startx, starty);
+
+	if (isBackCol && 2 != ret)
 	{
-		int startx=0,starty=0;
-		for(int m=0;m<loadHeight;m++)
-		{
-			for(int n=0;n<loadWidth;n++)
-			{
-				if(pLoadBmpBuffer[m][n]==pColor)  
-				{
-					//////过滤掉不处理的背景透明色
-					continue;
-				}
-				else
-				{
-					//2012.2.28 修改相似的图无法识别的问题.
-					startx=n;
-					starty=m;
-					goto toSerch;
-				}
-			}
-			if((m+1)==loadWidth)//如果全图是一个颜色，说明不是透明图
-				goto Serch;
-
-		}
-
-toSerch:
+		//部分透明的处理
 		for(int i=m_Top+ypos_offset; i<= m_bottom-1;i++)
 		{
 			if(isfirst)
@@ -1349,8 +1242,7 @@ toSerch:
 	}
 	else
 	{
-Serch:
-		//TSRuntime::add_log( "comparaLeftToRightFromTopEx-start");
+		//非透明的处理
 		for(int i=m_Top+ypos_offset; i<= m_bottom-1;i++)
 		{
 			if(isfirst)
@@ -1359,9 +1251,7 @@ Serch:
 				xpos_offset=0;
 			
 			if(m_bottom-i<loadHeight)
-			{
-				goto end;
-			}
+				break;
 			for(int j=m_Left+xpos_offset;j<=m_Right-1;j++)
 			{
 				if(m_Right-j<loadWidth)
@@ -1379,21 +1269,15 @@ Serch:
 		}
 	}
 end:
-
 	return isFind;
 }
 
 ////////处理背景色为透明的图片////////////////
 bool MyFindPictureClass::comparabmp(int startX,int startY,int endX,int endY)
 {
-	int fristX=0;
-	int fristY=0;
-	bool isFrist=true;
 	COLORREF pColor = pLoadBmpBuffer[0][0];  //// 目标图片的背景色
-
 	BYTE loadR=0, loadG=0, loadB=0;
 	BYTE wndR =0, wndG =0, wndB =0;
-	int absResult =0;
 	COLORREF pLoadColor = 0,pWndColor = 0;
 	for(int i=startY;i<endY;i++)
 	{
@@ -1417,13 +1301,9 @@ bool MyFindPictureClass::comparabmp(int startX,int startY,int endX,int endY)
 				wndB = GetBValue(pWndColor);
 				///////下面的是或关系。
 				if(abs(loadR-wndR)==0 && abs(loadG-wndG)==0 && abs(loadB-wndB)==0)
-				{
 					continue;
-				}
 				else
-				{
 					return false;
-				}
 			}
 		}
 	}
@@ -1433,28 +1313,22 @@ bool MyFindPictureClass::comparabmp(int startX,int startY,int endX,int endY)
 ////////处理背景色为透明的图片////////////////
 bool MyFindPictureClass::comparaLeftToRightFromTop(int h,int w,int startX,int startY)
 {
-	//TSRuntime::add_log( "comparaLeftToRightFromTop-h:%d,w:%d,startX:%d,startY:%d",h,w,startX,startY);
-	int fristX=0;
-	int fristY=0;
-	bool isFrist=true;
 	COLORREF pColor = pLoadBmpBuffer[0][0];  //// 目标图片的背景色
-
 	BYTE loadR=0, loadG=0, loadB=0;
 	BYTE wndR =0, wndG =0, wndB =0;
-	int absResult =0;
 	COLORREF pLoadColor = 0,pWndColor = 0;
 	for(int i=startY;i<loadHeight;i++)
 	{
 		for(int j=0;j<loadWidth;j++)
 		{
-			if(pLoadBmpBuffer[i][j]==pColor)  
+			pLoadColor = pLoadBmpBuffer[i][j];
+			if (pLoadColor == pColor)
 			{
 				//////过滤掉不处理的背景透明色
 				continue;
 			}
 			else
 			{	
-				pLoadColor=pLoadBmpBuffer[i][j];
 				loadR = GetRValue(pLoadColor);
 				loadG = GetGValue(pLoadColor);
 				loadB = GetBValue(pLoadColor);
@@ -1463,17 +1337,10 @@ bool MyFindPictureClass::comparaLeftToRightFromTop(int h,int w,int startX,int st
 				wndR = GetRValue(pWndColor);
 				wndG = GetGValue(pWndColor);
 				wndB = GetBValue(pWndColor);
-				absResult=abs(loadR-wndR)+abs(loadG-wndG)+abs(loadB-wndB);   ///用于相似度比较
-				///////下面的是或关系。
-				//if(abs(loadR-wndR)<=m_colorOffsR && abs(loadG-wndG)<=m_colorOffsG && abs(loadB-wndB)<=m_colorOffsB ||absResult<=m_simColor)
 				if(abs(loadR-wndR)<=(m_colorOffsR+m_simColNum) && abs(loadG-wndG)<=(m_colorOffsG+m_simColNum) && abs(loadB-wndB)<=(m_colorOffsB+m_simColNum) )
-				{
 					continue;
-				}
 				else
-				{
 					return false;
-				}
 			}
 		}
 	}
@@ -1482,10 +1349,8 @@ bool MyFindPictureClass::comparaLeftToRightFromTop(int h,int w,int startX,int st
 ////////处理背景色为不透明的图片////////////////
 bool MyFindPictureClass::comparaLeftToRightFromTopEx(int h,int w)
 {
-
 	BYTE loadR=0, loadG=0, loadB=0;
 	BYTE wndR =0, wndG =0, wndB =0;
-	int absResult =0;
 	COLORREF pLoadColor = 0,pWndColor = 0;
 	for(int i=0;i<loadHeight;i++)
 	{
@@ -1502,57 +1367,29 @@ bool MyFindPictureClass::comparaLeftToRightFromTopEx(int h,int w)
 			wndG = GetGValue(pWndColor);
 			wndB = GetBValue(pWndColor);
 
-			//absResult=(loadR-wndR)+abs(loadG-wndG)+abs(loadB-wndB);   ///用于相似度比较
-			//if(pLoadBmpBuffer[i][j] == pWndBmpBuffer[h+i][w+j])
 			if(abs(loadR-wndR)<=(m_colorOffsR+m_simColNum) && abs(loadG-wndG)<=(m_colorOffsG+m_simColNum) && abs(loadB-wndB)<=(m_colorOffsB+m_simColNum) )
-			{
 				continue;
-			}
 			else
-			{
 				return false;
-			}
-
 		}
 	}
 	return true;
 }
 
-
 ///////////////////////////////////////////////1：从左到右,从下倒上//////////////////////////
-//bool MyFindPictureClass::leftToRightFromBottom(int &xpos,int &ypos)
 bool MyFindPictureClass::leftToRightFromBottom(long &xpos,long &ypos)
 {
 	bool isFind=false;
 	bool isfirst=true;
-	COLORREF pColor = pLoadBmpBuffer[0][0];  //// 目标图片的背景色
-	if(pLoadBmpBuffer[0][0]==pLoadBmpBuffer[0][loadWidth-1]&&
-		pLoadBmpBuffer[0][0]==pLoadBmpBuffer[loadHeight-1][loadWidth-1]&&
-		pLoadBmpBuffer[0][0]==pLoadBmpBuffer[loadHeight-1][0])
-	{
-		int startx=0,starty=0;
-		for(int m=loadHeight-1;m>=0;m--)
-		{
-			for(int n=0;n<loadWidth;n++)
-			{
-				if(pLoadBmpBuffer[m][n] == pColor)  
-				{
-					//////过滤掉不处理的背景透明色
-					continue;
-				}
-				else
-				{
-					//2012.2.28 修改相似的图无法识别的问题.
-					startx=n;
-					starty=m;
-					goto toSerch;
-				}
-			}
-			if((m+1)==loadWidth)//如果全图是一个颜色，说明不是透明图
-				goto Serch;
-		}
 
-toSerch:
+	int ret = 0;
+	int startx = 0, starty = 0;
+	bool isBackCol = isExistBackCol();
+	if (isBackCol)
+		ret = checkStartPt(startx, starty);
+
+	if (isBackCol && 2 != ret)
+	{
 		for(int i=m_bottom-ypos_offset;i>=m_Top-1;i--)
 		{
 			if(isfirst)
@@ -1577,7 +1414,6 @@ toSerch:
 	}
 	else
 	{
-Serch:
 		for(int i=m_bottom-ypos_offset;i>=m_Top-1;i--)
 		{
 			if(isfirst)
@@ -1604,23 +1440,16 @@ Serch:
 end:
 	return isFind;
 }
+
 ////////处理背景色为透明的图片////////////////
-//bool MyFindPictureClass::comparaLeftToRightFromBottom(int h,int w,int startX,int startY)
 bool MyFindPictureClass::comparaLeftToRightFromBottom(int h,int w,int startX,int startY)
 {
-	int fristX=0;
-	int fristY=0;
-	bool isFrist=true;
 	COLORREF pColor = pLoadBmpBuffer[0][0];  //// 目标图片的背景色
-
 	BYTE loadR=0, loadG=0, loadB=0;
 	BYTE wndR =0, wndG =0, wndB =0;
-	int absResult =0;
-	//int colAdd =-1;
 	COLORREF pLoadColor = 0,pWndColor = 0;
 	for(int i=startY;i>=0;i--)
 	{
-		//colAdd++;
 		for(int j=startY;j<loadWidth;j++)
 		{
 			if(pLoadBmpBuffer[i][j]==pColor)  
@@ -1640,31 +1469,21 @@ bool MyFindPictureClass::comparaLeftToRightFromBottom(int h,int w,int startX,int
 				wndG = GetGValue(pWndColor);
 				wndB = GetBValue(pWndColor);
 
-
-				absResult=abs(loadR-wndR)+abs(loadG-wndG)+abs(loadB-wndB);   ///用于相似度比较
-				//if(pLoadBmpBuffer[i][j] == pWndBmpBuffer[h-colAdd][w+(j-fristX)])
-				//if(abs(loadR-wndR)<=m_colorOffsR && abs(loadG-wndG)<=m_colorOffsG && abs(loadB-wndB)<=m_colorOffsB )
 				if(abs(loadR-wndR)<=(m_colorOffsR+m_simColNum) && abs(loadG-wndG)<=(m_colorOffsG+m_simColNum) && abs(loadB-wndB)<=(m_colorOffsB+m_simColNum))
-				{
 					continue;
-				}
 				else
-				{
 					return false;
-				}
 			}
 		}
 	}
 	return true;
 }
+
 ////////处理背景色为不透明的图片////////////////
-//bool MyFindPictureClass::comparaLeftToRightFromBottomEx(int h,int w)
 bool  MyFindPictureClass::comparaLeftToRightFromBottomEx(int h,int w)
 {
 	BYTE loadR=0, loadG=0, loadB=0;
 	BYTE wndR =0, wndG =0, wndB =0;
-	int absResult =0;
-	//int colAdd =-1;
 	COLORREF pLoadColor = 0,pWndColor = 0;
 	for(int i=0 ;i<loadHeight;i++)
 	{
@@ -1680,57 +1499,29 @@ bool  MyFindPictureClass::comparaLeftToRightFromBottomEx(int h,int w)
 			wndG = GetGValue(pWndColor);
 			wndB = GetBValue(pWndColor);
 
-			absResult=(loadR-wndR)+abs(loadG-wndG)+abs(loadB-wndB);   ///用于相似度比较
-			//if(pLoadBmpBuffer[i][j] == pWndBmpBuffer[h+i][w+j])
-			//if(abs(loadR-wndR)<=m_colorOffsR && abs(loadG-wndG)<=m_colorOffsG && abs(loadB-wndB)<=m_colorOffsB )
 			if(abs(loadR-wndR)<=(m_colorOffsR+m_simColNum) && abs(loadG-wndG)<=(m_colorOffsG+m_simColNum) && abs(loadB-wndB)<=(m_colorOffsB+m_simColNum))
-			{
 				continue;
-			}
 			else
-			{
 				return false;
-			}
-
 		}
 	}
 	return true;
 }
 
 ////////////////////////////////////////////////2：从右到左,从上倒下////////////////////////
-//bool MyFindPictureClass::rightToLeftFromTop(int &xpos,int &ypos)
 bool   MyFindPictureClass::rightToLeftFromTop(long &xpos,long &ypos)
 {
 	bool isFind=false;
 	bool isfirst=true;
-	COLORREF pColor = pLoadBmpBuffer[0][0];  //// 目标图片的背景色
-	if(pLoadBmpBuffer[0][0]==pLoadBmpBuffer[0][loadWidth-1]&&
-		pLoadBmpBuffer[0][0]==pLoadBmpBuffer[loadHeight-1][loadWidth-1]&&
-		pLoadBmpBuffer[0][0]==pLoadBmpBuffer[loadHeight-1][0])
-	{
-		int startx=0,starty=0;
-		for(int m=0;m<loadHeight;m++)
-		{
-			for(int n=loadWidth-1;n>=0;n--)
-			{
-				if(pLoadBmpBuffer[m][n]==pColor)  
-				{
-					//////过滤掉不处理的背景透明色
-					continue;
-				}
-				else
-				{
-					//2012.2.28 修改相似的图无法识别的问题.
-					startx=n;
-					starty=m;
-					goto toSerch;
-				}
-			}
-			if((m+1)==loadWidth)//如果全图是一个颜色，说明不是透明图
-				goto Serch;
-		}
 
-toSerch:
+	int ret = 0;
+	int startx = 0, starty = 0;
+	bool isBackCol = isExistBackCol();
+	if (isBackCol)
+		ret = checkStartPt(startx, starty);
+
+	if (isBackCol && 2 != ret)
+	{
 		for(int i=m_Top+ypos_offset; i<= m_bottom-1;i++)
 		{
 			if(isfirst)
@@ -1757,7 +1548,6 @@ toSerch:
 	}
 	else
 	{
-Serch:
 		for(int i=m_Top+ypos_offset; i<= m_bottom-1;i++)
 		{
 			if(isfirst)
@@ -1783,30 +1573,20 @@ Serch:
 	}
 
 end:
-
 	return isFind;
 }
+
 ////////处理背景色为透明的图片////////////////
-//bool MyFindPictureClass::comparaRightToLeftFromTop(int h,int w,int startX,int startY)
 bool MyFindPictureClass::comparaRightToLeftFromTop(int h,int w,int startX,int startY)
 {
-	int fristX=0;
-	int fristY=0;
-	bool isFrist=true;
 	COLORREF pColor = pLoadBmpBuffer[0][0];  //// 目标图片的背景色
-
 	BYTE loadR=0, loadG=0, loadB=0;
 	BYTE wndR =0, wndG =0, wndB =0;
-	int absResult =0;
-
-	//int lineAdd =-1;
 	COLORREF pLoadColor = 0,pWndColor = 0;
 	for(int i=startY;i<loadHeight;i++)
 	{
-		//lineAdd =-1;
 		for(int j=loadWidth-1;j>=0;j--)
 		{
-			//lineAdd++;
 			if(pLoadBmpBuffer[i][j]==pColor)  
 			{
 				//////过滤掉不处理的背景透明色
@@ -1821,40 +1601,25 @@ bool MyFindPictureClass::comparaRightToLeftFromTop(int h,int w,int startX,int st
 			wndR = GetRValue(pWndColor);
 			wndG = GetGValue(pWndColor);
 			wndB = GetBValue(pWndColor);
-
-			absResult=(loadR-wndR)+abs(loadG-wndG)+abs(loadB-wndB);   ///用于相似度比较
-
-			//if(pLoadBmpBuffer[i][j] == pWndBmpBuffer[h+i][w+(/ *fristX* /0-lineAdd)])
-			//if(abs(loadR-wndR)<=m_colorOffsR && abs(loadG-wndG)<=m_colorOffsG && abs(loadB-wndB)<=m_colorOffsB )
 			if(abs(loadR-wndR)<=(m_colorOffsR+m_simColNum) && abs(loadG-wndG)<=(m_colorOffsG+m_simColNum) && abs(loadB-wndB)<=(m_colorOffsB+m_simColNum) )
-			{
 				continue;
-			}
 			else
-			{
 				return false;
-			}
-			//}
 		}
 	}
 	return true;
 }
+
 ////////处理背景色为不透明的图片////////////////
-//bool MyFindPictureClass::comparaRightToLeftFromTopEx(int h,int w)
 bool MyFindPictureClass::comparaRightToLeftFromTopEx(int h,int w)
 {
 	BYTE loadR=0, loadG=0, loadB=0;
 	BYTE wndR =0, wndG =0, wndB =0;
-	int absResult =0;
-
-	//int lineAdd =-1;
 	COLORREF pLoadColor = 0,pWndColor = 0;
 	for(int i=0;i<loadHeight;i++)
 	{
-		//lineAdd = -1;
 		for(int j=loadWidth-1;j>=0;j--)
 		{
-			//lineAdd++;
 			pLoadColor = pLoadBmpBuffer[i][j];
 			loadR = GetRValue(pLoadColor);
 			loadG = GetGValue(pLoadColor);
@@ -1864,59 +1629,29 @@ bool MyFindPictureClass::comparaRightToLeftFromTopEx(int h,int w)
 			wndR = GetRValue(pWndColor);
 			wndG = GetGValue(pWndColor);
 			wndB = GetBValue(pWndColor);
-
-			absResult=(loadR-wndR)+abs(loadG-wndG)+abs(loadB-wndB);   ///用于相似度比较
-			//if(pLoadBmpBuffer[i][j] == pWndBmpBuffer[h+i][w+j])
-			//if(abs(loadR-wndR)<=m_colorOffsR && abs(loadG-wndG)<=m_colorOffsG && abs(loadB-wndB)<=m_colorOffsB )
 			if(abs(loadR-wndR)<=(m_colorOffsR+m_simColNum) && abs(loadG-wndG)<=(m_colorOffsG+m_simColNum) && abs(loadB-wndB)<=(m_colorOffsB+m_simColNum) )
-			{
 				continue;
-			}
 			else
-			{
 				return false;
-			}
-
 		}
 	}
 	return true;
 }
 
 ///////////////////////////////////////////////////3：从右到左,从下倒上////////////////////
-//bool MyFindPictureClass::rightToLeftFromBottom(int &xpos,int &ypos)
 bool MyFindPictureClass::rightToLeftFromBottom(long &xpos,long &ypos)
 {
 	bool isFind=false;
 	bool isfirst=true;
-	COLORREF pColor = pLoadBmpBuffer[0][0];  //// 目标图片的背景色
-	if(pLoadBmpBuffer[0][0]==pLoadBmpBuffer[0][loadWidth-1]&&
-		pLoadBmpBuffer[0][0]==pLoadBmpBuffer[loadHeight-1][loadWidth-1]&&
-		pLoadBmpBuffer[0][0]==pLoadBmpBuffer[loadHeight-1][0])
+
+	int ret = 0;
+	int startx = 0, starty = 0;
+	bool isBackCol = isExistBackCol();
+	if (isBackCol)
+		ret = checkStartPt(startx, starty);
+
+	if (isBackCol && 2 != ret)
 	{
-		int startx=0,starty=0;
-		for(int m=loadHeight-1;m>=0;m--)
-		{
-			for(int n=loadWidth-1;n>=0;n--)
-			{
-				if(pLoadBmpBuffer[m][n]==pColor)  
-				{
-					//////过滤掉不处理的背景透明色
-					continue;
-				}
-				else
-				{
-					//2012.2.28 修改相似的图无法识别的问题.
-					startx=n;
-					starty=m;
-					goto toSerch;
-				}
-			}
-			if((m+1)==loadWidth)//如果全图是一个颜色，说明不是透明图
-				goto Serch;
-		}
-
-toSerch:
-
 		for(int i=m_bottom-ypos_offset;i>=m_Top-1;i--)
 		{
 			if(isfirst)
@@ -1947,7 +1682,6 @@ toSerch:
 	}
 	else
 	{
-Serch:
 		for(int i=m_bottom-ypos_offset;i>=m_Top-1;i--)
 		{
 			if(isfirst)
@@ -1980,28 +1714,16 @@ end:
 	return isFind;
 }
 ////////处理背景色为透明的图片////////////////
-//bool MyFindPictureClass::comparaRightToLeftFromBottom(int h,int w,int startX,int startY)
 bool MyFindPictureClass::comparaRightToLeftFromBottom(int h,int w,int startX,int startY)
 {
-	int fristX=0;
-	int fristY=0;
-	bool isFrist=true;
 	COLORREF pColor = pLoadBmpBuffer[0][0];  //// 目标图片的背景色
-
 	BYTE loadR=0, loadG=0, loadB=0;
 	BYTE wndR =0, wndG =0, wndB =0;
-	int absResult =0;
-
-	//int lineAdd=-1;
-	//int colAdd =-1;
 	COLORREF pLoadColor = 0,pWndColor = 0;
 	for(int i=startY; i>=0; i--)
 	{
-		//colAdd ++;
-		//lineAdd=-1;
 		for(int j=loadWidth-1;j>=0;j--)
 		{
-			//lineAdd++;
 			if(pLoadBmpBuffer[i][j]==pColor)  
 			{
 				//////过滤掉不处理的背景透明色
@@ -2010,7 +1732,6 @@ bool MyFindPictureClass::comparaRightToLeftFromBottom(int h,int w,int startX,int
 			else
 			{
 				pLoadColor=pLoadBmpBuffer[i][j];
-
 				loadR = GetRValue(pLoadColor);
 				loadG = GetGValue(pLoadColor);
 				loadB = GetBValue(pLoadColor);
@@ -2021,62 +1742,39 @@ bool MyFindPictureClass::comparaRightToLeftFromBottom(int h,int w,int startX,int
 				wndB = GetBValue(pWndColor);
 
 				if(abs(loadR-wndR)<=(m_colorOffsR+m_simColNum) && abs(loadG-wndG)<=(m_colorOffsG+m_simColNum) && abs(loadB-wndB)<=(m_colorOffsB+m_simColNum) )
-				{
 					continue;
-				}
 				else
-				{
 					return false;
-				}
 			}
 		}
 	}
-
 	return true;
 }
+
 ////////处理背景色为不透明的图片////////////////
-//bool MyFindPictureClass::comparaRightToLeftFromBottomEx(int h,int w)
 bool MyFindPictureClass::comparaRightToLeftFromBottomEx(int h,int w)
 {
 	BYTE loadR=0, loadG=0, loadB=0;
 	BYTE wndR =0, wndG =0, wndB =0;
-	int absResult =0;
-
-	//int lineAdd=-1;
-	//int colAdd =-1;
 	COLORREF pLoadColor = 0,pWndColor = 0;
-	//for(int i=loadHeight-1;i>=0;i--)
 	for(int i=0;i<loadHeight;i++)
 	{
-		//colAdd ++;
-		//lineAdd=-1;
-		//for(int j=loadWidth-1;j>=0;j--)
 		for(int j=0;j<loadWidth;j++)
 		{
-			//lineAdd++;
-
 			pLoadColor=pLoadBmpBuffer[i][j];
 			loadR = GetRValue(pLoadColor);
 			loadG = GetGValue(pLoadColor);
 			loadB = GetBValue(pLoadColor);
 
-			//COLORREF colorWnd=pWndBmpBuffer[h-colAdd][w-lineAdd];
 			pWndColor=pWndBmpBuffer[h+i][w+j];
 			wndR = GetRValue(pWndColor);
 			wndG = GetGValue(pWndColor);
 			wndB = GetBValue(pWndColor);
 
-			//absResult=(loadR-wndR)+abs(loadG-wndG)+abs(loadB-wndB);   ///用于相似度比较
-			//if(abs(loadR-wndR)<=m_colorOffsR && abs(loadG-wndG)<=m_colorOffsG && abs(loadB-wndB)<=m_colorOffsB )
 			if(abs(loadR-wndR)<=(m_colorOffsR+m_simColNum) && abs(loadG-wndG)<=(m_colorOffsG+m_simColNum) && abs(loadB-wndB)<=(m_colorOffsB+m_simColNum) )
-			{
 				continue;
-			}
 			else
-			{
 				return false;
-			}
-
 		}
 	}
 	return true;
@@ -2093,23 +1791,7 @@ bool MyFindPictureClass::processCreenWindow(int color,int left,int top,int right
 	if(right<left || top>bottom)
 		return false;
 
-	if(left<0)
-		left=0;
-
-	if(top<0)
-		top=0;
-
-	if(left>=Width)
-		left=Width-1;
-
-	if(top>=Height)
-		top=Height-1;
-
-	if(right>=Width)
-		right=Width-1;
-
-	if(bottom>=Height)
-		bottom=Height-1;
+	AdjustBound(left, top, right, bottom, Width, Height);
 	////////////////////////////////////////////////////////////
 
 	// 24位图的BITMAPINFO
@@ -2180,20 +1862,8 @@ bool MyFindPictureClass::processCreenWindow(int color,int left,int top,int right
 	BYTE rHelpValue=0,gHelpValue=0,bHelpValue=0;
 
 	//////////////////////////////四点的边界值判断////////////////
-	//if(left<0)
-	//	left=0;
-	//if(left>=Width)
-	//	left=Width-1;
-	//if(top<0)
-	//	top=0;
-	//if(top>=Height)
-	//	top=Height-1;
+	//AdjustBound(left, top, right, bottom, Width, Height);
 
-	//if(right>=Width)
-	//	right=Width-1;
-	//if(bottom>=Height)
-	//	bottom=Height-1;
-	//////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////
 	if(isMulitColor)  // // //////  多个颜色值的找色方法
 	{
@@ -2536,7 +2206,6 @@ bool MyFindPictureClass::FindMultiColor(wchar_t *MultiColor,int i,int j,int Bott
 			}
 			else
 				IsTrue = true;
-
 		}
 	}
 
@@ -2609,22 +2278,7 @@ int MyFindPictureClass::processColor(PVOID pbuffer,HWND src_hWnd,int &color,int 
 			m_Right=rec.right;
 			m_bottom=rec.bottom;
 
-			if(left<0)
-				left=0;
-			if(left >= clientwide)
-				left = clientwide-1;
-
-			if(top<0)
-				top=0;
-			if(top >= clienthight)
-				top = clienthight-1;
-
-			if(right >= clientwide)
-				right=clientwide-1;
-
-			if(bottom >= clienthight)
-				bottom=clienthight-1;
-
+			AdjustBound(left, top, right, bottom, clientwide, clienthight);
 			if(m_Left<0)
 			{
 				if((left+m_Left)<=0)//越界
@@ -3819,24 +3473,16 @@ void MyFindPictureClass::dicthextobyte(char * hexStr,char * byteStr,int &hexlen,
 
 bool MyFindPictureClass::comparaStr(short pLoadstrBufferxy[MAX_PATH],int strwide,int strhight,int &RetX,int &RetY,int startX,int startY,float simi,int nstrcount)
 {
-
-
 	return true;
 }
 
-
-
 bool MyFindPictureClass::GetStringInfo()//获取位置点阵信息
 {
-
-
 	return true;
-
 }
 
 bool MyFindPictureClass::MyUseDict(int Useindex,pMyDictInfo *MyDictCount,int &NowUsingDictIndex)	   //使用字库
 {
-
 	if(Useindex>=0&&Useindex<20)
 	{
 		//if(TSRuntime::MyDictCount[Useindex]!=NULL)
@@ -3855,7 +3501,6 @@ bool MyFindPictureClass::MyUseDict(int Useindex,pMyDictInfo *MyDictCount,int &No
 bool MyFindPictureClass::MyDeleteDict(int deleteindex,pMyDictInfo *MyDictCount,int *nMyDictCountsize,int &NowUsingDictIndex)	//删除字库
 {
 	//如果不是注入模式,直接使用静态类
-
 	if(deleteindex>=0&&deleteindex<20)
 	{
 		//if(TSRuntime::MyDictCount[deleteindex]!=NULL)
@@ -4086,22 +3731,7 @@ int MyFindPictureClass::FindStrFast(PVOID pbuffer,HWND hwnd,int left, int top, i
 		m_Right=rec.right;
 		m_bottom=rec.bottom;
 
-		if(left<0)
-			left=0;
-		if(left >= clientwide)
-			left = clientwide-1;
-
-		if(top<0)
-			top=0;
-		if(top >= clienthight)
-			top = clienthight-1;
-
-		if(right >= clientwide)
-			right=clientwide-1;
-
-		if(bottom >= clienthight)
-			bottom=clienthight-1;
-
+		AdjustBound(left, top, right, bottom, clientwide, clienthight);
 		if(m_Left<0)
 		{
 			if((left+m_Left)<=0)//越界
@@ -4753,8 +4383,6 @@ continuefind:
 					}
 					j--;
 				}
-
-
 			}
 			if(nindex!=-1&&(strfindlast==0||(strfind<strfindlast&&strfind!=0)))
 			{
@@ -4879,10 +4507,7 @@ int MyFindPictureClass::FindStr(PVOID pbuffer,HWND hwnd,int left, int top, int r
 		m_colorOffR[i] = GetRValue(strColoroff[i]);
 		m_colorOffG[i] = GetGValue(strColoroff[i]);
 		m_colorOffB[i] = GetBValue(strColoroff[i]);
-
-
 	}
-
 
 	if(m_parenthwnd!=0&&m_parenthwnd!=::GetDesktopWindow())//normol找图
 	{
@@ -4901,22 +4526,7 @@ int MyFindPictureClass::FindStr(PVOID pbuffer,HWND hwnd,int left, int top, int r
 		m_Right=rec.right;
 		m_bottom=rec.bottom;
 
-		if(left<0)
-			left=0;
-		if(left >= clientwide)
-			left = clientwide-1;
-
-		if(top<0)
-			top=0;
-		if(top >= clienthight)
-			top = clienthight-1;
-
-		if(right >= clientwide)
-			right=clientwide-1;
-
-		if(bottom >= clienthight)
-			bottom=clienthight-1;
-
+		AdjustBound(left, top, right, bottom, clientwide, clienthight);
 		if(m_Left<0)
 		{
 			if((left+m_Left)<=0)//越界
@@ -4970,21 +4580,7 @@ int MyFindPictureClass::FindStr(PVOID pbuffer,HWND hwnd,int left, int top, int r
 		m_Right = right;
 		m_bottom = bottom;
 
-		if(left<0)
-			m_Left = left =0;
-		if(left >= clientwide)
-			m_Left = clientwide-1;
-
-		if(top<0)
-			m_Top = top =0;
-		if(top >= clienthight)
-			m_Top = clienthight-1;
-
-		if(right >= clientwide)
-			m_Right=clientwide-1;
-
-		if(bottom >= clienthight)
-			m_bottom=clienthight-1;
+		AdjustBound(left, top, right, bottom, clientwide, clienthight);
 	}
 	RECT rc;
 	rc.bottom=m_bottom;
@@ -5665,22 +5261,7 @@ int MyFindPictureClass::ocr(PVOID pbuffer,HWND hwnd,int left, int top, int right
 		m_Right=rec.right;
 		m_bottom=rec.bottom;
 
-		if(left<0)
-			left=0;
-		if(left >= clientwide)
-			left = clientwide-1;
-
-		if(top<0)
-			top=0;
-		if(top >= clienthight)
-			top = clienthight-1;
-
-		if(right >= clientwide)
-			right=clientwide-1;
-
-		if(bottom >= clienthight)
-			bottom=clienthight-1;
-
+		AdjustBound(left, top, right, bottom, clientwide, clienthight);
 		if(m_Left<0)
 		{
 			if((left+m_Left)<=0)//越界
@@ -5734,21 +5315,7 @@ int MyFindPictureClass::ocr(PVOID pbuffer,HWND hwnd,int left, int top, int right
 		m_Right = right;
 		m_bottom = bottom;
 
-		if(left<0)
-			m_Left = left =0;
-		if(left >= clientwide)
-			m_Left = clientwide-1;
-
-		if(top<0)
-			m_Top = top =0;
-		if(top >= clienthight)
-			m_Top = clienthight-1;
-
-		if(right >= clientwide)
-			m_Right=clientwide-1;
-
-		if(bottom >= clienthight)
-			m_bottom=clienthight-1;
+		AdjustBound(left, top, right, bottom, clientwide, clienthight);
 	}
 	RECT rc;
 	rc.bottom=m_bottom;
@@ -6392,4 +5959,23 @@ bool MyFindPictureClass::MySetDict(int nindex,wchar_t *dictpath,pMyDictInfo *MyD
 	CloseHandle(hfile);
 
 	return isSet;
+}
+
+void MyFindPictureClass::AdjustBound(int &left, int &top, int &right, int &bottom, int wnWidth, int wnHeight)
+{
+	if (left < 0)
+		left = 0;
+	else if (left >= wnWidth)
+		left = wnWidth - 1;
+
+	if (top < 0)
+		top = 0;
+	else if (top >= wnHeight)
+		top = wnHeight - 1;
+
+	if (right >= wnWidth)
+		right = wnWidth - 1;
+
+	if (bottom >= wnHeight)
+		bottom = wnHeight - 1;
 }

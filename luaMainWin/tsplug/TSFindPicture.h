@@ -146,6 +146,9 @@ private:
 
 	bool comparabmp(int startX,int startY,int endX,int endY);
 	//////////////// 检索 方式 //////////////////
+	bool isExistBackCol(); //是否存在背景色
+	//判断待查找图片透明色类型(1:部分透明，并设置左上角坐标；2：全透明，代表不透明)
+	int checkStartPt(int &startx, int &starty); 
 	//////////////////////////////////0:从左到右,从上倒下/////////////////////
 	bool leftToRightFromTop(long &x,long &y);
 	//////处理背景色为透明的图片////////////////
@@ -177,6 +180,9 @@ private:
 	COLORREF RgbToBgb(__in COLORREF rgb);
 
 	bool FindMultiColor(wchar_t *MultiColor,int i,int j,int Bottom,int right,int help_simi);
+
+	//根据窗口宽度调整四个角点
+	void AdjustBound(int &left, int &top, int &right, int &bottom, int wnWidth, int wnHeight);
 	
 };
 #endif
